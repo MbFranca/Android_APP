@@ -1,0 +1,5 @@
+// azul normal #144BC9
+//fundo cinza #F5F5F5 
+// azul escuro  #011F67
+// azul claro #00B3FE
+// verde detalhes #9FE200

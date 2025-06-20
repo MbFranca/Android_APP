@@ -1,0 +1,43 @@
+# node dependencies (frontend e backend)
+**/node_modules/
+node_modules
+# backend
+
+# Expo (my-app)
+my-app/.expo/
+my-app/dist/
+my-app/web-build/
+my-app/expo-env.d.ts
+
+# Build folders
+**/build/
+**/dist/
+
+# Typescript
+*.tsbuildinfo
+
+# Local environment files
+*.env
+*.env*.local
+**/.env*
+.env
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Metro bundler
+.metro-health-check*
+
+# macOS
+.DS_Store
+
+# Certificados, chaves e arquivos sensíveis
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision

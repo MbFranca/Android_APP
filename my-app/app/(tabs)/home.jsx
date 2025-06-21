@@ -92,7 +92,7 @@ export default function HomePage() {
   };
 
   return (
-    <View style={{ backgroundColor: '#EEEFF3' }}>
+    <View style={{ backgroundColor: '#EEEFF3', flex:1 }}>
       <Header />
       <View style={style.container}>
         <Text style={style.tittles}>Hoje</Text>

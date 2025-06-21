@@ -17,7 +17,7 @@ export default function Header() {
 }
 const style = StyleSheet.create({
   container: {
-    backgroundColor: '#144BC9',
+    backgroundColor: '#014DC6',
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',

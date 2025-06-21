@@ -5,7 +5,8 @@ import {
   View,
   FlatList,
 } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Entypo from '@expo/vector-icons/Entypo';
 import { useAuth } from '../src/authProvider';
 import Header from '../components/header';
 import { useEffect, useState, useRef } from 'react';
@@ -19,13 +20,13 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const isFetchingRef = useRef(false);
-  const date = new Date();
 
   const dayWeek = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     weekday: 'long',
     month: 'long',
     day: 'numeric',
-  }).format(date);
+  }).format(new Date());
 
   const fetchData = async () => {
     if (isFetchingRef.current || !hasMore) return;
@@ -134,20 +135,84 @@ export default function HomePage() {
         <Text style={style.tittles}>Estatísticas Rápidas</Text>
 
         <View style={style.shortcutContainer}>
-          <View style={style.shortcut}>
-            <Text>Salas disponíveis</Text>
+          <View style={[style.shortcut, { height: 95 }]}>
+            <Text style={[style.shortcutText]}>Salas disponíveis</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: 130,
+              }}
+            >
+              <Text style={{ fontSize: 30 }}>10/58</Text>
+              <View
+                style={{
+                  padding: 13,
+                  backgroundColor: 'green',
+                  borderRadius: 50,
+                }}
+              ></View>
+            </View>
           </View>
-          <View style={style.shortcut}>
+          <View style={[style.shortcut, { height: 95 }]}>
+            <Text style={style.shortcutText}>Taxa de Ocupação</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: 130,
+              }}
+            >
+              <Text style={{ fontSize: 30 }}>58%</Text>
+              <Entypo name="bar-graph" size={30} color="#5087ff" />
+            </View>
+          </View>
+
+          <View
+            style={[
+              style.shortcut,
+              { flexDirection: 'row', justifyContent: 'space-between' },
+            ]}
+          >
             <TouchableOpacity>
-              <Feather name="plus-circle" size={24} color={'black'} />
+              <AntDesign name="pluscircle" size={36} color="#014DC6" />
             </TouchableOpacity>
-            <Text>Taxa de Ocupação</Text>
+            <Text
+              style={[
+                style.shortcutText,
+                { flexWrap: 'wrap', width: 120, marginLeft: 20 },
+              ]}
+            >
+              Nova Ocupação
+            </Text>
           </View>
-          <View style={style.shortcut}>
-            <Text>Nova Ocupação</Text>
-          </View>
-          <View style={style.shortcut}>
-            <Text>Nova Ocupação</Text>
+          <View
+            style={[
+              style.shortcut,
+              { flexDirection: 'row', justifyContent: 'space-between' },
+            ]}
+          >
+            <TouchableOpacity>
+              <View
+                style={{
+                  backgroundColor: '#014DC6',
+                  padding: 5,
+                  borderRadius: 6,
+                }}
+              >
+                <AntDesign name="search1" size={24} color="white" />
+              </View>
+            </TouchableOpacity>
+            <Text
+              style={[
+                style.shortcutText,
+                { flexWrap: 'wrap', width: 120, marginLeft: 20 },
+              ]}
+            >
+              Verificar
+            </Text>
           </View>
         </View>
 
@@ -178,7 +243,7 @@ const style = StyleSheet.create({
     paddingBottom: 15,
     paddingRight: 20,
     elevation: 1,
-    marginBottom:20
+    marginBottom: 20,
   },
   resumeDate: {
     marginBottom: 10,
@@ -221,14 +286,19 @@ const style = StyleSheet.create({
     justifyContent: 'space-between',
     maxWidth: 350,
     alignItems: 'center',
+    marginBottom: 20,
   },
   shortcut: {
     backgroundColor: '#ffff',
     width: 170,
-    height: 80,
+    height: 65,
     marginBottom: 20,
     borderRadius: 10,
-    padding: 5,
+    padding: 10,
     elevation: 2,
+    alignItems: 'center',
+  },
+  shortcutText: {
+    fontSize: 17,
   },
 });

@@ -23,10 +23,11 @@ export default function TabLayout() {
         component={Agenda}
         options={{
           headerShadowVisible: false,
+          tabBarAllowFontScaling: 13,
           headerStyle: {
-             backgroundColor: '#EEEFF3',
+            backgroundColor: '#EEEFF3',
           },
-
+          headerTitleStyle: { fontWeight: 'bold', fontSize: 26, marginLeft:15 },
           tabBarIcon: () => <Feather name="calendar" size={24} color="black" />,
         }}
       />

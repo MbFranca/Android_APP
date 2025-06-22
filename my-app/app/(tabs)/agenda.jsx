@@ -9,16 +9,84 @@ import {
 } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { supabase } from '../libs/supabaseClient';
+import ListFooter from '../components/listFooter';
 
 export default function Agenda() {
-  const data = ['evento', 'aula'];
+  const isFetchingRef = useRef(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [lastId, setLastId] = useState(null);
   const [selectedItem, setSelectedItem] = useState('evento');
+  const [ocupacoes, setOcupacoes] = useState([]);
+  const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
+
+  const fetchOcupations = async () => {
+    if (isFetchingRef.current || !hasMore) return;
+    isFetchingRef.current = true;
+    setLoading(true);
+
+    try {
+      let query = supabase
+        .from('salas')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
+
+      if (lastId) query = query.lt('id', lastId);
+      const { data: newData, error } = await query;
+      if (error) console.log('Erro ao retornar ocupações ' + error);
+      if (newData.length < Number(process.env.EXPO_PUBLIC_PAGE_SIZE)) {
+        setHasMore(false);
+      }
+      if (newData.length > 0) {
+        setLastId(newData[newData.length - 1].id);
+        setOcupacoes((prev) => [...prev, ...newData]);
+      }
+    } catch (error) {
+      console.log('Erro ao carregar ocupações ' + error);
+      return;
+    } finally {
+      isFetchingRef.current = false;
+      setLoading(loading);
+    }
+  };
+
+  const renderItem = ({ item }) => {
+    return (
+      <View style={{ marginTop: 20 }}>
+        <View style={styles.eventContainer}>
+          <Text style={[styles.eventItem, { fontWeight: '500' }]}>
+            10:00 - 10:00
+          </Text>
+          <Text style={[styles.eventItem, { fontWeight: '800' }]}>
+            {item.numero_sala}
+          </Text>
+          <Text style={[styles.eventItem, { fontWeight: '500' }]}>
+            {item.tipo_sala}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+  useEffect(() => {
+    fetchOcupations();
+  }, []);
 
   const onPress = (item) => {
     if (item === selectedItem) return;
     setSelectedItem(item);
   };
+
+  const emptyComponent = () => {
+    return (
+      <View style={styles.emptyItem}>
+        <Text style={{ fontSize: 16 }}>Sem Ocupações registradas</Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#EEEFF3' }}>
       <View style={styles.container}>
@@ -32,39 +100,40 @@ export default function Agenda() {
             keyboardType="default"
           ></TextInput>
         </View>
+
         <View style={{ marginTop: 20 }}>
           <FlatList
             horizontal
             data={data}
-            keyExtractor={(item) => item}
+            keyExtractor={(item) => item.tipo}
             style={[styles.categoryFilter]}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => onPress(item)}>
+              <TouchableOpacity onPress={() => onPress(item.tipo)}>
                 <Text
                   style={[
                     styles.filterTittle,
-                    item === selectedItem && styles.filtroAtivo,
+                    item.tipo === selectedItem && styles.filtroAtivo,
                   ]}
                 >
-                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                  {item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1)}
                 </Text>
               </TouchableOpacity>
             )}
           ></FlatList>
         </View>
 
-        <View style={{ marginTop: 20 }}>
-          <View style={styles.eventContainer}>
-            <Text style={[styles.eventItem, { fontWeight: '500' }]}>
-              10:00 - 10:00
-            </Text>
-            <Text style={[styles.eventItem, { fontWeight: '800' }]}>
-              Sala F102
-            </Text>
-            <Text style={[styles.eventItem, { fontWeight: '500' }]}>
-              Prog Orientada a OBJ em JAVA
-            </Text>
-          </View>
+        <View style={{ flex: 1, marginTop: 30 }}>
+          <FlatList
+            data={ocupacoes}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderItem}
+            style={[{ height: 190 }]}
+            onEndReached={fetchOcupations}
+            ListFooterComponent={loading ? <ListFooter /> : null}
+            onEndReachedThreshold={0.5}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={emptyComponent}
+          ></FlatList>
         </View>
       </View>
       <TouchableOpacity style={styles.addButton} activeOpacity={0.6}>
@@ -99,6 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     width: 60,
     height: 60,
+    backgroundColor: '#004CC6',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -108,7 +178,7 @@ const styles = StyleSheet.create({
     color: '#4e4e4ec5',
     borderRadius: 12,
     marginHorizontal: 5,
-    width: 90,
+    minWidth: 90,
     padding: 5,
     fontSize: 18,
     textAlign: 'center',
@@ -118,10 +188,10 @@ const styles = StyleSheet.create({
   filtroAtivo: {
     backgroundColor: '#0F273F',
     color: '#ffff',
-    elevation: 3,
+    elevation: 2,
   },
   eventContainer: {
-    elevation: 3,
+    elevation: 2,
     backgroundColor: '#ffff',
     borderRadius: 12,
     padding: 10,
@@ -133,6 +203,11 @@ const styles = StyleSheet.create({
     height: 45,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyItem: {
+    height: 130,
     alignItems: 'center',
     justifyContent: 'center',
   },

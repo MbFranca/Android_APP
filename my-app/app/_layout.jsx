@@ -9,7 +9,6 @@ function InitialLayout() {
   const router = useRouter();
   
   useEffect(() => {
-    console.log(session, initialized);
 
     if (!initialized) return;
 

@@ -12,6 +12,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
 import ListFooter from '../components/listFooter';
+import ModalNewOcupation from '../components/modalNewOcupation';
 
 export default function Agenda() {
   const isFetchingRef = useRef(false);
@@ -20,6 +21,7 @@ export default function Agenda() {
   const [lastId, setLastId] = useState(null);
   const [selectedItem, setSelectedItem] = useState('evento');
   const [ocupacoes, setOcupacoes] = useState([]);
+  const [visible, setVisible] = useState(false)
   const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
 
   const fetchOcupations = async () => {
@@ -55,7 +57,7 @@ export default function Agenda() {
 
   const renderItem = ({ item }) => {
     return (
-      <View style={{ marginTop: 20 }}>
+      <View style={{ marginTop: 10, marginBottom: 10 }}>
         <View style={styles.eventContainer}>
           <Text style={[styles.eventItem, { fontWeight: '500' }]}>
             10:00 - 10:00
@@ -70,6 +72,7 @@ export default function Agenda() {
       </View>
     );
   };
+
   useEffect(() => {
     fetchOcupations();
   }, []);
@@ -121,7 +124,7 @@ export default function Agenda() {
             )}
           ></FlatList>
         </View>
-
+        <ModalNewOcupation visible={visible}  onClose={(()=> setVisible(false))}/>
         <View style={{ flex: 1, marginTop: 30 }}>
           <FlatList
             data={ocupacoes}
@@ -136,7 +139,7 @@ export default function Agenda() {
           ></FlatList>
         </View>
       </View>
-      <TouchableOpacity style={styles.addButton} activeOpacity={0.6}>
+      <TouchableOpacity style={styles.addButton} activeOpacity={0.6} onPress={()=> setVisible(true)}>
         <Entypo name="plus" size={24} color="white" />
       </TouchableOpacity>
     </SafeAreaView>

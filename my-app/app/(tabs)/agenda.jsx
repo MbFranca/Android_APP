@@ -5,6 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  ToastAndroid,
   FlatList,
 } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -21,7 +22,7 @@ export default function Agenda() {
   const [lastId, setLastId] = useState(null);
   const [selectedItem, setSelectedItem] = useState('evento');
   const [ocupacoes, setOcupacoes] = useState([]);
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(false);
   const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
 
   const fetchOcupations = async () => {
@@ -31,14 +32,15 @@ export default function Agenda() {
 
     try {
       let query = supabase
-        .from('salas')
-        .select('*')
-        .order('id', { ascending: false })
+        .from('ocupacoes')
+        .select(
+          `*,   materias (nome), professores (nome), salas (numero_sala), turmas (numero)`
+        )
         .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
 
       if (lastId) query = query.lt('id', lastId);
       const { data: newData, error } = await query;
-      if (error) console.log('Erro ao retornar ocupações ' + error);
+      if (error) console.error('Erro ao retornar ocupações ' + error);
       if (newData.length < Number(process.env.EXPO_PUBLIC_PAGE_SIZE)) {
         setHasMore(false);
       }
@@ -47,7 +49,7 @@ export default function Agenda() {
         setOcupacoes((prev) => [...prev, ...newData]);
       }
     } catch (error) {
-      console.log('Erro ao carregar ocupações ' + error);
+      console.error('Erro ao carregar ocupações ' + error);
       return;
     } finally {
       isFetchingRef.current = false;
@@ -63,10 +65,10 @@ export default function Agenda() {
             10:00 - 10:00
           </Text>
           <Text style={[styles.eventItem, { fontWeight: '800' }]}>
-            {item.numero_sala}
+            {item.salas.numero_sala}
           </Text>
           <Text style={[styles.eventItem, { fontWeight: '500' }]}>
-            {item.tipo_sala}
+             {item.materias?.nome ?? 'Sem matéria'}
           </Text>
         </View>
       </View>
@@ -124,7 +126,13 @@ export default function Agenda() {
             )}
           ></FlatList>
         </View>
-        <ModalNewOcupation visible={visible}  onClose={(()=> setVisible(false))}/>
+        <ModalNewOcupation
+          visible={visible}
+          onClose={() => setVisible(false)}
+          onSave={() => {
+            console.log(true);
+          }}
+        />
         <View style={{ flex: 1, marginTop: 30 }}>
           <FlatList
             data={ocupacoes}
@@ -139,7 +147,11 @@ export default function Agenda() {
           ></FlatList>
         </View>
       </View>
-      <TouchableOpacity style={styles.addButton} activeOpacity={0.6} onPress={()=> setVisible(true)}>
+      <TouchableOpacity
+        style={styles.addButton}
+        activeOpacity={0.6}
+        onPress={() => setVisible(true)}
+      >
         <Entypo name="plus" size={24} color="white" />
       </TouchableOpacity>
     </SafeAreaView>

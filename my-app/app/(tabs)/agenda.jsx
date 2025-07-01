@@ -28,6 +28,7 @@ export default function Agenda() {
   const [details, setDetails] = useState(null);
   const [visibleNew, setVisibleNew] = useState(false);
   const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
+  const [editData, setEditData] = useState();
 
   const fetchOcupations = async () => {
     if (isFetchingRef.current || !hasMore) return;
@@ -79,8 +80,25 @@ export default function Agenda() {
               {item.salas.numero_sala}
             </Text>
             <Text style={[styles.eventItem, { fontWeight: '500' }]}>
-              {item.materias?.nome ?? 'Sem matéria'}
+              {item.materias.nome}
             </Text>
+            <TouchableOpacity
+              style={{ position: 'absolute', right: 5, bottom: 5, padding: 5 }}
+              onPress={() => {
+                console.log('clicouF');
+              }}
+            >
+              <AntDesign name="delete" size={18} color="#fa6060d1" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ position: 'absolute', right: 50, bottom: 5, padding: 5 }}
+              onPress={() => {
+                setEditData(item);
+                setVisibleNew(true);
+              }}
+            >
+              <AntDesign name="edit" size={18} color="#004CC6" />
+            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
@@ -104,9 +122,17 @@ export default function Agenda() {
     );
   };
 
+  const resetOcupation = () => {
+    setHasMore(true);
+    setOcupacoes([]);
+    setLastId(null);
+    fetchOcupations();
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#EEEFF3' }}>
       <View style={styles.container}>
+        {/* Input container */}
         <View style={styles.inputContainer}>
           <View style={styles.iconWrapper}>
             <AntDesign name="search1" size={24} color="#929292" style={{}} />
@@ -118,6 +144,7 @@ export default function Agenda() {
           ></TextInput>
         </View>
 
+        {/* Fillter container */}
         <View style={{ marginTop: 20 }}>
           <FlatList
             horizontal
@@ -138,18 +165,25 @@ export default function Agenda() {
             )}
           ></FlatList>
         </View>
+
+        {/* Modal */}
         <ModalNewOcupation
           visible={visibleNew}
           onClose={() => setVisibleNew(false)}
           onSave={() => {
-            console.log(true);
+            resetOcupation();
           }}
+          editData={editData}
         />
+
+        {/* Modal */}
         <ModalDetailsOcupation
           details={details}
           onClose={() => setVisibleDetails(false)}
           visible={visibleDetails}
         ></ModalDetailsOcupation>
+
+        {/* FlatList Ocupations */}
         <View style={{ flex: 1, marginTop: 30 }}>
           <FlatList
             data={ocupacoes}
@@ -164,10 +198,13 @@ export default function Agenda() {
           ></FlatList>
         </View>
       </View>
+      {/*Bt add Ocupations */}
       <TouchableOpacity
         style={styles.addButton}
         activeOpacity={0.6}
-        onPress={() => setVisibleNew(true)}
+        onPress={() => {
+          setVisibleNew(true), setEditData();
+        }}
       >
         <Entypo name="plus" size={24} color="white" />
       </TouchableOpacity>

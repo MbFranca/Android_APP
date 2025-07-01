@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+import { formatarHorario } from '../libs/formataHorario';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useForm, Controller } from 'react-hook-form';
 import { supabase } from '../libs/supabaseClient';
@@ -21,12 +22,12 @@ export default function ModalNewOcupation({
   editData = null,
 }) {
   const [loading, setLoading] = useState(false);
-
   const [salas, setSalas] = useState([]);
   const [professor, setProfessor] = useState([]);
   const [turma, setTurma] = useState([]);
   const [materia, setMateria] = useState([]);
 
+  const [showDropDown, setShowDropDown] = useState(null);
   const [showSalas, setShowSalas] = useState();
   const [showTurma, setShowTurma] = useState();
   const [showMateria, setShowMateria] = useState();
@@ -110,12 +111,12 @@ export default function ModalNewOcupation({
     }
   }, [visible]);
 
-  // useEffect(() => {
-  //   const sub = watch((value) => {
-  //     console.log('valor mudou: ', value);
-  //   });
-  //   return () => sub.unsubscribe();
-  // }, [watch]);
+  useEffect(() => {
+    const sub = watch((value) => {
+      console.log('valor mudou: ', value);
+    });
+    return () => sub.unsubscribe();
+  }, [watch]);
 
   useEffect(() => {
     if (editData) {
@@ -216,23 +217,11 @@ export default function ModalNewOcupation({
     }
   };
 
-  const formatarHorario = (value) => {
-    const numeros = value.replace(/\D/g, '');
-
-    if (numeros.length <= 2) {
-      return numeros;
-    } else {
-      const horas = numeros.substring(0, 2); // indice 0 até o 1, nao conta com o 2
-      const minutos = numeros.substring(2, 4);
-      return `${horas}:${minutos}`;
-    }
-  };
   return (
     <SafeAreaView>
       <Modal
         transparent
         animationType="fade"
-        style={{ backgroundColor: 'red' }}
         visible={visible}
         onRequestClose={onClose}
       >
@@ -287,10 +276,12 @@ export default function ModalNewOcupation({
                         rules={{ required: 'Turma é obrigatória' }}
                         render={({ field: { onChange, value } }) => (
                           <DropDownPicker
-                            open={showTurma}
+                            open={showDropDown === 'turma'}
                             value={value}
                             items={turma}
-                            setOpen={setShowTurma}
+                            setOpen={(open) => {
+                              setShowDropDown(open ? 'turma' : null);
+                            }}
                             setValue={(val) => onChange(val())}
                             setItems={setTurma}
                             placeholder="Selecione uma turma"
@@ -317,10 +308,12 @@ export default function ModalNewOcupation({
                         rules={{ required: 'Professors é obrigatório' }}
                         render={({ field: { onChange, value } }) => (
                           <DropDownPicker
-                            open={showProfessor}
+                            open={showDropDown === 'professor'}
                             value={value}
                             items={professor}
-                            setOpen={setShowProfessor}
+                            setOpen={(open) => {
+                              setShowDropDown(open ? 'professor' : null);
+                            }}
                             setValue={(val) => onChange(val())}
                             setItems={setProfessor}
                             placeholder="Selecione um professor"
@@ -347,10 +340,12 @@ export default function ModalNewOcupation({
                         rules={{ required: 'Materia é obrigatória' }}
                         render={({ field: { onChange, value } }) => (
                           <DropDownPicker
-                            open={showMateria}
+                            open={showDropDown === 'materias'}
                             value={value}
                             items={materia}
-                            setOpen={setShowMateria}
+                            setOpen={(open) => {
+                              setShowDropDown(open ? 'materias' : null);
+                            }}
                             setValue={(val) => onChange(val())}
                             setItems={setMateria}
                             placeholder="Selecione uma matéria"
@@ -376,10 +371,12 @@ export default function ModalNewOcupation({
                         name="sala_id"
                         render={({ field: { onChange, value } }) => (
                           <DropDownPicker
-                            open={showSalas}
+                            open={showDropDown === 'salas'}
                             value={value}
                             items={salas}
-                            setOpen={setShowSalas}
+                            setOpen={(open) => {
+                              setShowDropDown(open ? 'salas' : null);
+                            }}
                             setValue={(val) => onChange(val())}
                             setItems={setSalas}
                             placeholder="Selecione uma sala"

@@ -12,6 +12,7 @@ import Header from '../components/header';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../libs/supabaseClient';
 import ListFooter from '../components/listFooter';
+import { formatarHorario } from '../libs/formataHorario';
 
 export default function HomePage() {
   const { signOut } = useAuth();
@@ -36,8 +37,10 @@ export default function HomePage() {
 
     try {
       let query = supabase
-        .from('salas')
-        .select('*')
+        .from('ocupacoes')
+        .select(
+          `* , materias (nome), professores (nome), turmas (numero), salas (numero_sala)`,
+        )
         .order('id', { ascending: false })
         .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
 
@@ -70,14 +73,16 @@ export default function HomePage() {
   const renderItemm = ({ item }) => {
     return (
       <View style={style.resumeItem}>
-        <Text style={style.itemText}>{'19:00-21:00'}</Text>
-        <Text style={style.itemText}>{item.numero_sala}</Text>
+        <Text
+          style={style.itemText}
+        >{`${formatarHorario(item.horario_inicio)}-${formatarHorario(item.horario_fim)}`}</Text>
+        <Text style={style.itemText}>{item.salas.numero_sala}</Text>
         <Text
           style={[style.itemText, { width: 105 }]}
           ellipsizeMode="tail"
           numberOfLines={1}
         >
-          {item.tipo_sala}
+          {item.materias.nome}
         </Text>
       </View>
     );

@@ -2,14 +2,12 @@ import AuthProvider, { useAuth } from './src/authProvider';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 
-
 function InitialLayout() {
   const { session, initialized } = useAuth();
   const segment = useSegments();
   const router = useRouter();
   
   useEffect(() => {
-    console.log(session, initialized);
 
     if (!initialized) return;
 

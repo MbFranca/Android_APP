@@ -5,6 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  ToastAndroid,
   FlatList,
 } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -12,6 +13,9 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../libs/supabaseClient';
 import ListFooter from '../components/listFooter';
+import ModalNewOcupation from '../components/modalNewOcupation';
+import ModalDetailsOcupation from '../components/modalDetailsOcupation';
+import { formatarHorario } from '../libs/formataHorario';
 
 export default function Agenda() {
   const isFetchingRef = useRef(false);
@@ -20,6 +24,9 @@ export default function Agenda() {
   const [lastId, setLastId] = useState(null);
   const [selectedItem, setSelectedItem] = useState('evento');
   const [ocupacoes, setOcupacoes] = useState([]);
+  const [visibleDetails, setVisibleDetails] = useState(false);
+  const [details, setDetails] = useState(null);
+  const [visibleNew, setVisibleNew] = useState(false);
   const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
 
   const fetchOcupations = async () => {
@@ -29,14 +36,15 @@ export default function Agenda() {
 
     try {
       let query = supabase
-        .from('salas')
-        .select('*')
-        .order('id', { ascending: false })
+        .from('ocupacoes')
+        .select(
+          `*,   materias (*), professores (nome), salas (numero_sala, blocos (nome)), turmas (numero)`,
+        )
         .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
 
       if (lastId) query = query.lt('id', lastId);
       const { data: newData, error } = await query;
-      if (error) console.log('Erro ao retornar ocupações ' + error);
+      if (error) console.error('Erro ao retornar ocupações ' + error);
       if (newData.length < Number(process.env.EXPO_PUBLIC_PAGE_SIZE)) {
         setHasMore(false);
       }
@@ -45,7 +53,7 @@ export default function Agenda() {
         setOcupacoes((prev) => [...prev, ...newData]);
       }
     } catch (error) {
-      console.log('Erro ao carregar ocupações ' + error);
+      console.error('Erro ao carregar ocupações ' + error);
       return;
     } finally {
       isFetchingRef.current = false;
@@ -55,21 +63,30 @@ export default function Agenda() {
 
   const renderItem = ({ item }) => {
     return (
-      <View style={{ marginTop: 20 }}>
-        <View style={styles.eventContainer}>
-          <Text style={[styles.eventItem, { fontWeight: '500' }]}>
-            10:00 - 10:00
-          </Text>
-          <Text style={[styles.eventItem, { fontWeight: '800' }]}>
-            {item.numero_sala}
-          </Text>
-          <Text style={[styles.eventItem, { fontWeight: '500' }]}>
-            {item.tipo_sala}
-          </Text>
+      <TouchableOpacity
+        onPress={() => {
+          setVisibleDetails(true);
+          setDetails(item);
+        }}
+        activeOpacity={1}
+      >
+        <View style={{ marginTop: 10, marginBottom: 10 }}>
+          <View style={styles.eventContainer}>
+            <Text style={[styles.eventItem, { fontWeight: '500' }]}>
+              {`${formatarHorario(item.horario_inicio)}-${formatarHorario(item.horario_fim)}`}
+            </Text>
+            <Text style={[styles.eventItem, { fontWeight: '800' }]}>
+              {item.salas.numero_sala}
+            </Text>
+            <Text style={[styles.eventItem, { fontWeight: '500' }]}>
+              {item.materias?.nome ?? 'Sem matéria'}
+            </Text>
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
+
   useEffect(() => {
     fetchOcupations();
   }, []);
@@ -121,7 +138,18 @@ export default function Agenda() {
             )}
           ></FlatList>
         </View>
-
+        <ModalNewOcupation
+          visible={visibleNew}
+          onClose={() => setVisibleNew(false)}
+          onSave={() => {
+            console.log(true);
+          }}
+        />
+        <ModalDetailsOcupation
+          details={details}
+          onClose={() => setVisibleDetails(false)}
+          visible={visibleDetails}
+        ></ModalDetailsOcupation>
         <View style={{ flex: 1, marginTop: 30 }}>
           <FlatList
             data={ocupacoes}
@@ -136,7 +164,11 @@ export default function Agenda() {
           ></FlatList>
         </View>
       </View>
-      <TouchableOpacity style={styles.addButton} activeOpacity={0.6}>
+      <TouchableOpacity
+        style={styles.addButton}
+        activeOpacity={0.6}
+        onPress={() => setVisibleNew(true)}
+      >
         <Entypo name="plus" size={24} color="white" />
       </TouchableOpacity>
     </SafeAreaView>

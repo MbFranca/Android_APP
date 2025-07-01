@@ -12,6 +12,7 @@ import Header from '../components/header';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../libs/supabaseClient';
 import ListFooter from '../components/listFooter';
+import { formatarHorario } from '../libs/formataHorario';
 
 export default function HomePage() {
   const { signOut } = useAuth();
@@ -36,8 +37,10 @@ export default function HomePage() {
 
     try {
       let query = supabase
-        .from('salas')
-        .select('*')
+        .from('ocupacoes')
+        .select(
+          `* , materias (nome), professores (nome), turmas (numero), salas (numero_sala)`,
+        )
         .order('id', { ascending: false })
         .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
 
@@ -70,14 +73,16 @@ export default function HomePage() {
   const renderItemm = ({ item }) => {
     return (
       <View style={style.resumeItem}>
-        <Text style={style.itemText}>{'19:00-21:00'}</Text>
-        <Text style={style.itemText}>{item.numero_sala}</Text>
+        <Text
+          style={style.itemText}
+        >{`${formatarHorario(item.horario_inicio)}-${formatarHorario(item.horario_fim)}`}</Text>
+        <Text style={style.itemText}>{item.salas.numero_sala}</Text>
         <Text
           style={[style.itemText, { width: 105 }]}
           ellipsizeMode="tail"
           numberOfLines={1}
         >
-          {item.tipo_sala}
+          {item.materias.nome}
         </Text>
       </View>
     );
@@ -92,7 +97,7 @@ export default function HomePage() {
   };
 
   return (
-    <View style={{ backgroundColor: '#EEEFF3', flex:1 }}>
+    <View style={{ backgroundColor: '#EEEFF3', flex: 1 }}>
       <Header />
       <View style={style.container}>
         <Text style={style.tittles}>Hoje</Text>
@@ -132,87 +137,94 @@ export default function HomePage() {
             ListEmptyComponent={emptyComponent}
           ></FlatList>
         </View>
+
         <Text style={style.tittles}>Estatísticas Rápidas</Text>
-
-        <View style={style.shortcutContainer}>
-          <View style={[style.shortcut, { height: 95 }]}>
-            <Text style={[style.shortcutText]}>Salas disponíveis</Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: 130,
-              }}
-            >
-              <Text style={{ fontSize: 30 }}>10/58</Text>
+        {/* Estatísticas Rápidas */}
+        <View style={[style.shortcutContainer]}>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+          >
+            <View style={[style.shortcut, { height: 90 }]}>
+              <Text style={[style.shortcutText, { fontSize: 15 }]}>
+                Salas disponíveis
+              </Text>
               <View
                 style={{
-                  padding: 13,
-                  backgroundColor: 'green',
-                  borderRadius: 50,
-                }}
-              ></View>
-            </View>
-          </View>
-          <View style={[style.shortcut, { height: 95 }]}>
-            <Text style={style.shortcutText}>Taxa de Ocupação</Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: 130,
-              }}
-            >
-              <Text style={{ fontSize: 30 }}>58%</Text>
-              <Entypo name="bar-graph" size={30} color="#5087ff" />
-            </View>
-          </View>
-
-          <View
-            style={[
-              style.shortcut,
-              { flexDirection: 'row', justifyContent: 'space-between' },
-            ]}
-          >
-            <TouchableOpacity>
-              <AntDesign name="pluscircle" size={36} color="#014DC6" />
-            </TouchableOpacity>
-            <Text
-              style={[
-                style.shortcutText,
-                { flexWrap: 'wrap', width: 120, marginLeft: 20 },
-              ]}
-            >
-              Nova Ocupação
-            </Text>
-          </View>
-          <View
-            style={[
-              style.shortcut,
-              { flexDirection: 'row', justifyContent: 'space-between' },
-            ]}
-          >
-            <TouchableOpacity>
-              <View
-                style={{
-                  backgroundColor: '#014DC6',
-                  padding: 5,
-                  borderRadius: 6,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
                 }}
               >
-                <AntDesign name="search1" size={24} color="white" />
+                <Text style={{ fontSize: 30 }}>10/58</Text>
+                <View
+                  style={{
+                    padding: 13,
+                    backgroundColor: 'green',
+                    borderRadius: 50,
+                  }}
+                ></View>
               </View>
-            </TouchableOpacity>
-            <Text
+            </View>
+            <View style={[style.shortcut, { height: 90 }]}>
+              <Text style={[style.shortcutText, { fontSize: 14 }]}>
+                Taxa de Ocupação
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                }}
+              >
+                <Text style={{ fontSize: 30 }}>58%</Text>
+                <Entypo name="bar-graph" size={30} color="#5087ff" />
+              </View>
+            </View>
+          </View>
+
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+          >
+            <View
               style={[
-                style.shortcutText,
-                { flexWrap: 'wrap', width: 120, marginLeft: 20 },
+                style.shortcut,
+                { flexDirection: 'row', justifyContent: 'center' },
               ]}
             >
-              Verificar
-            </Text>
+              <TouchableOpacity>
+                <AntDesign name="pluscircle" size={36} color="#014DC6" />
+              </TouchableOpacity>
+              <Text
+                style={[style.shortcutText, { maxWidth: 120, marginLeft: 10 }]}
+              >
+                Nova Ocupação
+              </Text>
+            </View>
+            <View
+              style={[
+                style.shortcut,
+                { flexDirection: 'row', justifyContent: 'center' },
+              ]}
+            >
+              <TouchableOpacity>
+                <View
+                  style={{
+                    backgroundColor: '#014DC6',
+                    padding: 5,
+                    borderRadius: 6,
+                  }}
+                >
+                  <AntDesign name="search1" size={24} color="white" />
+                </View>
+              </TouchableOpacity>
+              <Text
+                style={[style.shortcutText, { maxWidth: 120, marginLeft: 10 }]}
+              >
+                Verificar
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -281,16 +293,13 @@ const style = StyleSheet.create({
     justifyContent: 'center',
   },
   shortcutContainer: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     maxWidth: 350,
-    alignItems: 'center',
     marginBottom: 20,
   },
   shortcut: {
-    backgroundColor: '#ffff',
-    width: 170,
+    backgroundColor: '#ffffff',
+    minWidth: 150,
+    maxWidth: 150,
     height: 65,
     marginBottom: 20,
     borderRadius: 10,
@@ -300,5 +309,6 @@ const style = StyleSheet.create({
   },
   shortcutText: {
     fontSize: 17,
+    maxWidth: 120,
   },
 });

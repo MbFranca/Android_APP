@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 
 export default function ModalDetailsOcupation({ onClose, visible, details }) {
+
   const [trueDetails, setTrueDetails] = useState();
+
   useEffect(() => {
     if (trueDetails !== null) {
       setTrueDetails(details);
@@ -90,7 +92,6 @@ export default function ModalDetailsOcupation({ onClose, visible, details }) {
                       {details.materias.ara}
                     </Text>
                   </View>
-                  <Text></Text>
                 </View>
               ) : null}
             </TouchableWithoutFeedback>

@@ -26,12 +26,7 @@ export default function ModalNewOcupation({
   const [professor, setProfessor] = useState([]);
   const [turma, setTurma] = useState([]);
   const [materia, setMateria] = useState([]);
-
   const [showDropDown, setShowDropDown] = useState(null);
-  const [showSalas, setShowSalas] = useState();
-  const [showTurma, setShowTurma] = useState();
-  const [showMateria, setShowMateria] = useState();
-  const [showProfessor, setShowProfessor] = useState();
 
   const {
     control,
@@ -109,22 +104,24 @@ export default function ModalNewOcupation({
     if (visible) {
       fetchData();
     }
-  }, [visible]);
+  }, [visible, editData]);
 
-  useEffect(() => {
-    const sub = watch((value) => {
-      console.log('valor mudou: ', value);
-    });
-    return () => sub.unsubscribe();
-  }, [watch]);
+  // useEffect(() => {
+  //   const sub = watch((value) => {
+  //     console.log('valor mudou: ', value);
+  //   });
+  //   return () => sub.unsubscribe();
+  // }, [watch]);
 
   useEffect(() => {
     if (editData) {
       Object.keys(editData).forEach((key) => {
         setValue(key, editData[key]);
       });
+    }else{
+      reset()
     }
-  }, []);
+  }, [editData]);
 
   const verificaConflitos = async (data) => {
     if (!data.sala_id) return true;
@@ -136,14 +133,12 @@ export default function ModalNewOcupation({
         .eq('sala_id', data.sala_id)
         .lte('horario_inicio', data.horario_fim)
         .gte('horario_fim', data.horario_inicio);
-      console.log(conflitos);
       if (error) {
         console.error('Erro ao retornar conflitos: ', error);
       }
       const conflitosReais = editData
         ? conflitos.filter((c) => c.id !== editData.id)
         : conflitos; // no conflit
-      console.log(conflitosReais, '\n', conflitos);
       if (conflitosReais.length > 0) {
         const conflitosDetails = conflitos
           .map(

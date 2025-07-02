@@ -48,10 +48,12 @@ export default function OcupationProvider({ children }) {
   };
 
   const resetOcupation = () => {
+    if (isFetchingRef.current) return; // nao faz reset se estiver buscando
+    isFetchingRef.current = false; //no reset garante false
+    
     setHasMore(true);
     setOcupacoes([]);
     setLastId(null);
-    isFetchingRef.current = false; //no reset garante false
 
     setTimeout(() => {
       fetchOcupations();

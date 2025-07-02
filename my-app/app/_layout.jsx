@@ -1,22 +1,21 @@
 import AuthProvider, { useAuth } from './src/authProvider';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
+import OcupationProvider from './src/ocupationProvider';
 
 function InitialLayout() {
   const { session, initialized } = useAuth();
   const segment = useSegments();
   const router = useRouter();
-  
-  useEffect(() => {
 
+  useEffect(() => {
     if (!initialized) return;
 
     const inAuthGroup = segment[0] === '(auth)';
 
     if (session && !inAuthGroup) {
       router.replace('/gerenciar');
-    }
-    else if (session && inAuthGroup) {
+    } else if (session && inAuthGroup) {
       router.replace('/gerenciar');
     } else if (!session) {
       router.replace('/login');
@@ -29,7 +28,9 @@ function InitialLayout() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <InitialLayout />
+      <OcupationProvider>
+        <InitialLayout />
+      </OcupationProvider>
     </AuthProvider>
   );
 }

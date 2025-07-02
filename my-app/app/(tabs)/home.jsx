@@ -9,18 +9,14 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useAuth } from '../src/authProvider';
 import Header from '../components/header';
-import { useEffect, useState, useRef } from 'react';
-import { supabase } from '../libs/supabaseClient';
 import ListFooter from '../components/listFooter';
 import { formatarHorario } from '../libs/formataHorario';
+import { useFetchOcupation } from '../src/ocupationProvider';
+import { useEffect } from 'react';
 
 export default function HomePage() {
   const { signOut } = useAuth();
-  const [data, setData] = useState([]);
-  const [lastId, setLastId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const isFetchingRef = useRef(false);
+  const { ocupacoes, loading, fetchOcupations } = useFetchOcupation();
 
   const dayWeek = new Intl.DateTimeFormat('pt-BR', {
     timeZone: 'America/Sao_Paulo',
@@ -29,47 +25,10 @@ export default function HomePage() {
     day: 'numeric',
   }).format(new Date());
 
-  const fetchData = async () => {
-    if (isFetchingRef.current || !hasMore) return;
-    isFetchingRef.current = true;
-
-    setLoading(true);
-
-    try {
-      let query = supabase
-        .from('ocupacoes')
-        .select(
-          `* , materias (nome), professores (nome), turmas (numero), salas (numero_sala)`,
-        )
-        .order('id', { ascending: false })
-        .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
-
-      if (lastId) query = query.lt('id', lastId);
-
-      const { data: newData, error } = await query;
-
-      if (error) console.log('erro ao retornar data', error);
-
-      if (newData.length < Number(process.env.EXPO_PUBLIC_PAGE_SIZE))
-        setHasMore(false);
-
-      if (newData.length > 0) {
-        setLastId(newData[newData.length - 1].id);
-        setData((prev) => [...prev, ...newData]);
-      }
-    } catch (error) {
-      console.error('erro ao carregar dados' + error);
-      return;
-    } finally {
-      setLoading(false);
-      isFetchingRef.current = false;
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    fetchOcupations();
+    console.log('home')
   }, []);
-
   const renderItemm = ({ item }) => {
     return (
       <View style={style.resumeItem}>
@@ -127,12 +86,12 @@ export default function HomePage() {
           </View>
 
           <FlatList
-            data={data}
+            data={ocupacoes}
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderItemm}
             ListFooterComponent={loading ? <ListFooter /> : null}
             style={[style.resumeContainer, { height: 190 }]}
-            onEndReached={fetchData}
+            onEndReached={fetchOcupations}
             onEndReachedThreshold={0.5}
             ListEmptyComponent={emptyComponent}
           ></FlatList>

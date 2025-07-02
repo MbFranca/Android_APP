@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ToastAndroid,
   FlatList,
+  Alert,
 } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -16,52 +17,31 @@ import ListFooter from '../components/listFooter';
 import ModalNewOcupation from '../components/modalNewOcupation';
 import ModalDetailsOcupation from '../components/modalDetailsOcupation';
 import { formatarHorario } from '../libs/formataHorario';
+import { useFetchOcupation } from '../src/ocupationProvider';
 
 export default function Agenda() {
-  const isFetchingRef = useRef(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [lastId, setLastId] = useState(null);
-  const [selectedItem, setSelectedItem] = useState('evento');
-  const [ocupacoes, setOcupacoes] = useState([]);
+  const {ocupacoes, loading, fetchOcupations, resetOcupation} = useFetchOcupation();
   const [visibleDetails, setVisibleDetails] = useState(false);
   const [details, setDetails] = useState(null);
   const [visibleNew, setVisibleNew] = useState(false);
-  const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
   const [editData, setEditData] = useState();
+  const [selectedItem, setSelectedItem] = useState('evento');
+  const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
 
-  const fetchOcupations = async () => {
-    if (isFetchingRef.current || !hasMore) return;
-    isFetchingRef.current = true;
-    setLoading(true);
-
+  const deleteOcupation = async (id) => {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('ocupacoes')
-        .select(
-          `*,   materias (*), professores (nome), salas (numero_sala, blocos (nome)), turmas (numero)`,
-        )
-        .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
+        .delete()
+        .eq('id', id)
+        .select();
 
-      if (lastId) query = query.lt('id', lastId);
-      const { data: newData, error } = await query;
-      if (error) console.error('Erro ao retornar ocupações ' + error);
-      if (newData.length < Number(process.env.EXPO_PUBLIC_PAGE_SIZE)) {
-        setHasMore(false);
-      }
-      if (newData.length > 0) {
-        setLastId(newData[newData.length - 1].id);
-        setOcupacoes((prev) => [...prev, ...newData]);
-      }
+      if (error) console.error('Erro ao deletar ocupação: ', error.message);
+      resetOcupation();
     } catch (error) {
-      console.error('Erro ao carregar ocupações ' + error);
-      return;
-    } finally {
-      isFetchingRef.current = false;
-      setLoading(loading);
+      console.error('Erro ao deletar ocupação: ', error);
     }
   };
-
   const renderItem = ({ item }) => {
     return (
       <TouchableOpacity
@@ -85,7 +65,18 @@ export default function Agenda() {
             <TouchableOpacity
               style={{ position: 'absolute', right: 5, bottom: 5, padding: 5 }}
               onPress={() => {
-                console.log('clicouF');
+                Alert.alert(
+                  'Confirmar exclusão',
+                  'Tem certeza que deseja excluir este Ocupação?',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Excluir',
+                      onPress: () => deleteOcupation(item.id),
+                      style: 'destructive',
+                    },
+                  ],
+                );
               }}
             >
               <AntDesign name="delete" size={18} color="#fa6060d1" />
@@ -106,6 +97,7 @@ export default function Agenda() {
   };
 
   useEffect(() => {
+    console.log('agenda')
     fetchOcupations();
   }, []);
 
@@ -120,13 +112,6 @@ export default function Agenda() {
         <Text style={{ fontSize: 16 }}>Sem Ocupações registradas</Text>
       </View>
     );
-  };
-
-  const resetOcupation = () => {
-    setHasMore(true);
-    setOcupacoes([]);
-    setLastId(null);
-    fetchOcupations();
   };
 
   return (

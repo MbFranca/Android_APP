@@ -1,5 +1,4 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { Alert, Text } from 'react-native';
 import { supabase } from '../libs/supabaseClient';
 
 export const AuthContext = createContext({});

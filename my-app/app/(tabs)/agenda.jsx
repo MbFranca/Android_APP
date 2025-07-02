@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ToastAndroid,
   FlatList,
+  Alert,
 } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -61,7 +62,20 @@ export default function Agenda() {
       setLoading(loading);
     }
   };
+  const deleteOcupation = async (id) => {
+    try {
+      const { data, error } = await supabase
+        .from('ocupacoes')
+        .delete()
+        .eq('id', id)
+        .select();
 
+      if (error) console.error('Erro ao deletar ocupação: ', error.message);
+      resetOcupation()
+    } catch (error) {
+      console.error('Erro ao deletar ocupação: ', error);
+    }
+  };
   const renderItem = ({ item }) => {
     return (
       <TouchableOpacity
@@ -85,7 +99,18 @@ export default function Agenda() {
             <TouchableOpacity
               style={{ position: 'absolute', right: 5, bottom: 5, padding: 5 }}
               onPress={() => {
-                console.log('clicouF');
+                Alert.alert(
+                  'Confirmar exclusão',
+                  'Tem certeza que deseja excluir este Ocupação?',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Excluir',
+                      onPress: () => deleteOcupation(item.id),
+                      style: 'destructive',
+                    },
+                  ],
+                );
               }}
             >
               <AntDesign name="delete" size={18} color="#fa6060d1" />

@@ -17,51 +17,17 @@ import ListFooter from '../components/listFooter';
 import ModalNewOcupation from '../components/modalNewOcupation';
 import ModalDetailsOcupation from '../components/modalDetailsOcupation';
 import { formatarHorario } from '../libs/formataHorario';
+import { useFetchOcupation } from '../src/ocupationProvider';
 
 export default function Agenda() {
-  const isFetchingRef = useRef(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [lastId, setLastId] = useState(null);
-  const [selectedItem, setSelectedItem] = useState('evento');
-  const [ocupacoes, setOcupacoes] = useState([]);
+  const {ocupacoes, loading, fetchOcupations, resetOcupation} = useFetchOcupation();
   const [visibleDetails, setVisibleDetails] = useState(false);
   const [details, setDetails] = useState(null);
   const [visibleNew, setVisibleNew] = useState(false);
-  const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
   const [editData, setEditData] = useState();
+  const [selectedItem, setSelectedItem] = useState('evento');
+  const data = [{ tipo: 'evento' }, { tipo: 'ocupações' }];
 
-  const fetchOcupations = async () => {
-    if (isFetchingRef.current || !hasMore) return;
-    isFetchingRef.current = true;
-    setLoading(true);
-
-    try {
-      let query = supabase
-        .from('ocupacoes')
-        .select(
-          `*,   materias (*), professores (nome), salas (numero_sala, blocos (nome)), turmas (numero)`,
-        )
-        .limit(Number(process.env.EXPO_PUBLIC_PAGE_SIZE));
-
-      if (lastId) query = query.lt('id', lastId);
-      const { data: newData, error } = await query;
-      if (error) console.error('Erro ao retornar ocupações ' + error);
-      if (newData.length < Number(process.env.EXPO_PUBLIC_PAGE_SIZE)) {
-        setHasMore(false);
-      }
-      if (newData.length > 0) {
-        setLastId(newData[newData.length - 1].id);
-        setOcupacoes((prev) => [...prev, ...newData]);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar ocupações ' + error);
-      return;
-    } finally {
-      isFetchingRef.current = false;
-      setLoading(loading);
-    }
-  };
   const deleteOcupation = async (id) => {
     try {
       const { data, error } = await supabase
@@ -71,7 +37,7 @@ export default function Agenda() {
         .select();
 
       if (error) console.error('Erro ao deletar ocupação: ', error.message);
-      resetOcupation()
+      resetOcupation();
     } catch (error) {
       console.error('Erro ao deletar ocupação: ', error);
     }
@@ -131,6 +97,7 @@ export default function Agenda() {
   };
 
   useEffect(() => {
+    console.log('agenda')
     fetchOcupations();
   }, []);
 
@@ -145,13 +112,6 @@ export default function Agenda() {
         <Text style={{ fontSize: 16 }}>Sem Ocupações registradas</Text>
       </View>
     );
-  };
-
-  const resetOcupation = () => {
-    setHasMore(true);
-    setOcupacoes([]);
-    setLastId(null);
-    fetchOcupations();
   };
 
   return (
